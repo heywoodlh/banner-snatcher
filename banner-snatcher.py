@@ -39,8 +39,16 @@ def banner_grab(host, port):
     except:
         banner_results = 'False'
         
-
+@timeout(3)
 def port_timed_check(host, port):
+    if port_check(host, int(port)) == 0:
+        banner_grab(host, int(port))
+        if banner_results == 'True':
+            print(host + ':' + '\n' + str(banner))
+        else:
+            print('Unable to retrieve banner from ' + host)
+    else:
+        print('Port ' + port + ' on host ' + host + ' is not open.') 
     
 
 
@@ -49,16 +57,10 @@ def main():
         try:
             check_host(host)
             for port in args.port:
-                @timeout(3)
-                port_timed_check(host, port)
-                if port_check(host, int(port)) == 0:
-                    banner_grab(host, int(port))
-                    if banner_results == 'True':
-                        print(host + ':' + '\n' + str(banner))
-                    else:
-                        print('Unable to retrieve banner from ' + host)
-                else:
-                    print('Port ' + port + ' on host ' + host + ' is not open.') 
+                try:
+                    port_timed_check(host, port)
+                except:
+                    print('Port ' + port + ' on host ' + host + ' timed out.')
                 
         except socket.gaierror:
             print(host + ' is an invalid host.')
