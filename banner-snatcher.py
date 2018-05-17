@@ -4,6 +4,9 @@ import argparse
 import contextlib
 import sys
 import os
+import re
+import netaddr
+import dns.resolver
 from timeout import timeout
 
 parser = argparse.ArgumentParser(description="Python program that snatches banners of accessible ports")
@@ -20,15 +23,16 @@ parser_scan.add_argument('-q', '--quiet', help='suppress output', action="store_
 args = parser.parse_args()
 
 
-def check_host(host):
-    socket.gethostbyname(host)
+#def check_host(host):
+#    socket.gethostbyname(host)
 
     
 def port_check(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     global port_result
-    port_result = sock.connect_ex((host,port))
+    port_result = sock.connect_ex((host,int(port)))
     return port_result
+
 
 def banner_grab(host, port):
     s = socket.socket()  
@@ -42,6 +46,7 @@ def banner_grab(host, port):
     except:
         banner_results = 'False'
 
+
 @timeout(1)
 def port_timed_check(host, port, file_write):
     if port_check(host, int(port)) == 0:
@@ -51,7 +56,24 @@ def port_timed_check(host, port, file_write):
                 f.write(host + ': ' + banner)
             if not args.quiet:
                 print(host + ': ' + str(banner))
+
     
+def dig(host):
+    try:
+        for ip in dns.resolver.query(host, 'A'):
+            return str(ip)
+        dig_error = 'false'
+    except dns.resolver.NXDOMAIN:
+        if not args.quiet:
+            print('Unable to resolve domain ' + host)
+        dig_error = 'true'
+
+def port_scan(host, port, file_write):
+    try:
+        port_timed_check(host, port, file_write)
+    except:
+        if not args.quiet:
+            print('Port ' + str(port) + ' on host ' + str(host) + ' timed out.')
 
 
 def main():
@@ -63,17 +85,17 @@ def main():
     else:
         file_write = 'False'
     for host in args.host:
-        try:
-            check_host(host)
+        if re.match("(?:\d{1,3}\.){3}\d{1,3}(?:/\d\d?)?", host):
+            ip = netaddr.IPNetwork(host)
+            for host in ip:
+                host = str(host)
+                for port in args.port:
+                    port_scan(host, port, file_write)
+        else:
+            non_ip = 'true'
+            ip = dig(host)
             for port in args.port:
-                try:
-                    port_timed_check(host, port, file_write)
-                except:
-                    print('Port ' + port + ' on host ' + host + ' timed out.')
-                
-        except socket.gaierror:
-            print(host + ' is an invalid host.')
-     
+                port_scan(host, port, file_write)
 
 if __name__ == '__main__':
     main()
