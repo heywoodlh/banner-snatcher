@@ -2,22 +2,10 @@
 
 ```
 ❯ ./banner-snatcher.py --help
-usage: banner-snatcher.py [-h] {scan} ...
+usage: banner-snatcher.py [-h] --host HOST [HOST ...] -p PORT [PORT ...]
+                          [-o FILE] [-q]
 
 Python program that snatches banners of accessible ports
-
-positional arguments:
-  {scan}      sub-command help
-    scan      scan host
-
-optional arguments:
-  -h, --help  show this help message and exit
-```
-
-```
-❯ ./banner-snatcher.py scan --help
-usage: banner-snatcher.py scan [-h] --host HOST [HOST ...] -p PORT [PORT ...]
-                               [-o FILE] [-q]
 
 optional arguments:
   -h, --help            show this help message and exit
