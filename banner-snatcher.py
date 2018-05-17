@@ -34,7 +34,8 @@ def banner_grab(host, port):
     global banner_results
     try:
         global banner
-        banner = s.recv(1024)
+        banner = s.recv(4096)
+        banner = banner.decode("utf-8")
         banner_results = 'True'
     except:
         banner_results = 'False'
