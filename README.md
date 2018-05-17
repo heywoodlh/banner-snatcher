@@ -3,7 +3,9 @@
 ## Installation:
 
 Install via Pypi:
-`sudo pip3 install banner-snatcher`
+
+`pip3 install --user banner-snatcher`
+
 
 Usage:
 
