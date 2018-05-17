@@ -44,7 +44,7 @@ def port_timed_check(host, port):
     if port_check(host, int(port)) == 0:
         banner_grab(host, int(port))
         if banner_results == 'True':
-            print(host + ':' + '\n' + str(banner))
+            print(host + ': ' + str(banner))
         else:
             print('Unable to retrieve banner from ' + host)
     else:
