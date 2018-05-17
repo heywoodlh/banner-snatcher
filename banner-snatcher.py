@@ -13,7 +13,9 @@ subparsers = parser.add_subparsers(help='sub-command help', dest='command')
 ## Init subparser
 parser_scan = subparsers.add_parser('scan', help='scan host')
 parser_scan.add_argument('--host', help='host(s) to scan', nargs='+', metavar='HOST', required='True')
-parser_scan.add_argument('--port', help='port(s) to scan', nargs='+', metavar='PORT')
+parser_scan.add_argument('-p', '--port', help='port(s) to scan', nargs='+', metavar='PORT', required='True')
+parser_scan.add_argument('-o', '--outfile', help='output to file', metavar='FILE')
+parser_scan.add_argument('-q', '--quiet', help='suppress output', action="store_true")
 
 args = parser.parse_args()
 
@@ -28,7 +30,7 @@ def port_check(host, port):
     port_result = sock.connect_ex((host,port))
     return port_result
 
-def banner_grab(host, port): 
+def banner_grab(host, port):
     s = socket.socket()  
     s.connect((host,port))  
     global banner_results
@@ -39,27 +41,33 @@ def banner_grab(host, port):
         banner_results = 'True'
     except:
         banner_results = 'False'
-        
-@timeout(3)
-def port_timed_check(host, port):
+
+@timeout(1)
+def port_timed_check(host, port, file_write):
     if port_check(host, int(port)) == 0:
         banner_grab(host, int(port))
         if banner_results == 'True':
-            print(host + ': ' + str(banner))
-        else:
-            print('Unable to retrieve banner from ' + host)
-    else:
-        print('Port ' + port + ' on host ' + host + ' is not open.') 
+            if file_write == 'True':
+                f.write(host + ': ' + banner)
+            if not args.quiet:
+                print(host + ': ' + str(banner))
     
 
 
 def main():
+    if args.outfile:
+        outfile = args.outfile
+        global f
+        f = open(outfile, "a+")
+        file_write = 'True'
+    else:
+        file_write = 'False'
     for host in args.host:
         try:
             check_host(host)
             for port in args.port:
                 try:
-                    port_timed_check(host, port)
+                    port_timed_check(host, port, file_write)
                 except:
                     print('Port ' + port + ' on host ' + host + ' timed out.')
                 
