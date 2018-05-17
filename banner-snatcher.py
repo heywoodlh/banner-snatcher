@@ -15,16 +15,12 @@ subparsers = parser.add_subparsers(help='sub-command help', dest='command')
 
 ## Init subparser
 parser_scan = subparsers.add_parser('scan', help='scan host')
-parser_scan.add_argument('--host', help='host(s) to scan', nargs='+', metavar='HOST', required='True')
-parser_scan.add_argument('-p', '--port', help='port(s) to scan', nargs='+', metavar='PORT', required='True')
+parser_scan.add_argument('--host', help='host(s) to scan', nargs='+', metavar='HOST', required='true')
+parser_scan.add_argument('-p', '--port', help='port(s) to scan', nargs='+', metavar='PORT', required='true')
 parser_scan.add_argument('-o', '--outfile', help='output to file', metavar='FILE')
 parser_scan.add_argument('-q', '--quiet', help='suppress output', action="store_true")
 
 args = parser.parse_args()
-
-
-#def check_host(host):
-#    socket.gethostbyname(host)
 
     
 def port_check(host, port):
@@ -53,20 +49,27 @@ def port_timed_check(host, port, file_write):
         banner_grab(host, int(port))
         if banner_results == 'True':
             if file_write == 'True':
-                f.write(host + ': ' + banner)
+                if non_ip == 'True':
+                    f.write(domain_name + ': ' + banner)
+                else:
+                    f.write(host + ': ' + banner)
             if not args.quiet:
-                print(host + ': ' + str(banner))
+                if non_ip == 'True':
+                    print(domain_name + ': ' + banner)
+                else:
+                    print(host + ': ' + str(banner))
 
     
 def dig(host):
     try:
         for ip in dns.resolver.query(host, 'A'):
             return str(ip)
-        dig_error = 'false'
+        dig_error = 'False'
     except dns.resolver.NXDOMAIN:
         if not args.quiet:
             print('Unable to resolve domain ' + host)
-        dig_error = 'true'
+        dig_error = 'True'
+
 
 def port_scan(host, port, file_write):
     try:
@@ -85,17 +88,21 @@ def main():
     else:
         file_write = 'False'
     for host in args.host:
+        global non_ip
         if re.match("(?:\d{1,3}\.){3}\d{1,3}(?:/\d\d?)?", host):
+            non_ip = 'False'
             ip = netaddr.IPNetwork(host)
             for host in ip:
                 host = str(host)
                 for port in args.port:
                     port_scan(host, port, file_write)
         else:
-            non_ip = 'true'
+            non_ip = 'True'
+            global domain_name
+            domain_name = host
             ip = dig(host)
             for port in args.port:
-                port_scan(host, port, file_write)
+                port_scan(ip, port, file_write)
 
 if __name__ == '__main__':
     main()
