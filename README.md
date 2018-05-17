@@ -1,7 +1,14 @@
 ## banner-snatcher
 
+## Installation:
+
+Install via Pypi:
+`sudo pip3 install banner-snatcher`
+
+Usage:
+
 ```
-❯ ./banner-snatcher.py --help
+❯ bansnatch --help
 usage: banner-snatcher.py [-h] --host HOST [HOST ...] -p PORT [PORT ...]
                           [-o FILE] [--debug] [-q]
 
