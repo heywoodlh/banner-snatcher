@@ -41,6 +41,7 @@ def banner_grab(host, port):
         banner_results = 'True'
     except:
         banner_results = 'False'
+    s.close()
 
 
 @timeout(1)
